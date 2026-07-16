@@ -14,13 +14,17 @@
 <p align="center">
   <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Codex-111111?style=flat-square" alt="Claude Code + Codex">
   <img src="https://img.shields.io/badge/axes-5-111111?style=flat-square" alt="5 axes">
-  <img src="https://img.shields.io/badge/benchmark-honest%20or%20none-111111?style=flat-square" alt="No fake benchmark">
+  <img src="https://img.shields.io/badge/benchmark-real%2C%20small%20n-111111?style=flat-square" alt="Real benchmark, small n">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
 </p>
 
 <p align="center">
   <strong>Read less &middot; Write less &middot; Never make the same mistake twice.</strong><br>
   <sub>The AI coding skill that treats your token bill like it comes out of its own pocket.</sub>
+</p>
+
+<p align="center">
+  <sub><strong>Measured:</strong> &minus;71% context, &minus;67% cost on exploration; &minus;17% output on generation. glm-5.2, small n. <a href="docs/benchmark-2026-07-17.md">benchmark</a></sub>
 </p>
 
 <p align="center">
@@ -137,13 +141,18 @@ Codex enforces the same intent through `AGENTS.md` rules (it has fewer native ho
 
 ## The honest numbers
 
-Every token-saver on GitHub leads with a big percentage. poorguy is the one that won't lie to you with a number it made up. Here is the real math:
+We ran it — same tasks, same model, skill injected vs plain baseline, token counts straight from the model's own counters. glm-5.2 in Claude Code (not Claude, not Codex — see the report).
 
-- **Read less is the big lever.** In long sessions, input and context dwarf output. Skipping nine full-file reads beats any prose trick.
-- **Write less cuts output** — roughly tens of percent on verbose replies — but the rules cost **~1–1.5k input tokens per turn**. Net win on long, chatty work; near flat on terse Q&A.
-- **The only fully honest number is an A/B on your own usage page.** poorguy ships the measurement to read it — real counts from Codex sqlite/rollout or Claude Code's `message.usage`, with a confidence label.
+| Axis | Task | Result |
+|---|---|---|
+| **Read less** | exploration in a 16-file repo (n=1) | context **−71%**, cost **−67%** |
+| **Write less** | single-shot generation (n=3) | output **−17%** (range −11% to −23%) |
 
-> **Rule of thumb:** if your normal reply is over ~1.5–2k output tokens, poorguy saves you money. Under that, it saves you reading time — and that part is free.
+The baseline over-explored — one task burned **76k tokens / $1.02** to answer a question about 16 files. The skill arm routed to line ranges, returned evidence packets, wrote terse.
+
+Plainly: read is n=1 (agentic noise — treat the ratio as directional), the repo is small, the skill was force-injected so real-world savings are ≤ this, and the model is glm-5.2. The write axis saves output but the rules cost input, so single-shot $ is roughly flat; in a real cached session the output savings dominate. The only number that outranks this is an A/B on your own usage page.
+
+Reproduce: `python3 scripts/run_benchmark.py write|read`. Full method + raw runs: [docs/benchmark-2026-07-17.md](docs/benchmark-2026-07-17.md).
 
 ## Files
 
@@ -173,7 +182,7 @@ Both. Same brain; only the measurement adapter and the hook surface differ.
 After the first time, yes. That is the entire point of the memory tier.
 
 **Where's the benchmark?**
-There isn't one, and there won't be a fake one. Run your own A/B and check your provider's usage page — that number outranks anything a README could print.
+Here: [docs/benchmark-2026-07-17.md](docs/benchmark-2026-07-17.md) — with every caveat (small n, named model, force-injected). Reproduce it with `scripts/run_benchmark.py`. Run your own A/B on your usage page too; that number still outranks a README.
 
 **Do I need CodeGraph / GitNexus / graphify?**
 No. Without them poorguy falls back to strict `rg` and range reads and still helps on the write + memory axes. With one installed, the read axis gets sharp.
