@@ -4,16 +4,27 @@ Date: 2026-07-16
 
 ## Purpose
 
-`poorguy-token` is a Codex-first Agent Skill that reduces token use by routing
-AI coding work to the cheapest useful context source.
+`poorguy-token` is a Codex- and Claude Code-first Agent Skill that reduces token
+use by routing AI coding work to the cheapest useful context source.
 
 It does not replace CodeGraph, GitNexus, or graphify. It chooses between them,
 packs their output into small evidence packets, and reports token/context usage
 after the session.
 
+## V2 scope (current) — five axes
+
+This doc captures the original routing-only design. The skill has since expanded
+to five axes; see [design.md](design.md) for the current architecture. The axes:
+
+1. **Read less** — context routing (this doc, `routing.md`, `tools.md`).
+2. **Write less** — terse output with quality guardrails (`output.md`).
+3. **Never repeat** — memory store loaded before coding (`memory.md`, `memory/*`).
+4. **Enforce** — opt-in host hooks (`harness.md`, `hooks/fluff_guard.py`).
+5. **Measure** — per-host token/context reporting (`measurement.md`, dual-host).
+
 ## Design Principles
 
-1. Codex first, host adapters later.
+1. Codex and Claude Code first, more host adapters later.
 2. Router over reimplementation.
 3. One primary context tool per task.
 4. Exact evidence beats broad context.
@@ -26,6 +37,7 @@ after the session.
 Included:
 
 - Codex host adapter.
+- Claude Code host adapter.
 - Tool detector for CodeGraph, GitNexus, and graphify.
 - Intent router.
 - First-use install plan.
@@ -37,7 +49,7 @@ Deferred:
 
 - Full MCP server.
 - Custom indexer.
-- Non-Codex host implementations.
+- Host implementations beyond Codex and Claude Code (Cursor, OpenCode, etc.).
 - Default install of Serena/FastContext/FastCode/LLMLingua.
 - Exact billing-cost reporting when host does not expose price metadata.
 
@@ -131,6 +143,13 @@ Codex v1 reads:
 - `threads.rollout_path`
 - rollout jsonl events for context-size estimates
 
+Claude Code v1 reads:
+
+- Transcripts: `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl` (cwd with `/` -> `-`).
+- Assistant records `message.usage`: `input_tokens`, `output_tokens`, `cache_creation_input_tokens`, `cache_read_input_tokens`. Sum across the session for the primary token number.
+- Transcript blocks (`user`, `assistant`, `tool_use`, `tool_result`, `attachment`) for context-size estimates.
+- `/cost` and `ccusage` as alternative ready-made reports.
+
 If any source is missing, return partial data with `estimated=true`.
 
 ## Token And Context Measurement
@@ -142,6 +161,14 @@ Codex v1:
 1. Find the current thread from cwd, newest updated thread, or explicit thread id.
 2. Read `threads.tokens_used`.
 3. Record source as `codex.sqlite.threads.tokens_used`.
+
+Claude Code v1:
+
+1. Encode cwd by replacing `/` with `-`; locate the newest `<session-id>.jsonl`
+   under `~/.claude/projects/<encoded-cwd>/` (or use an explicit session id).
+2. Sum `message.usage.{input,output,cache_creation_input,cache_read_input}_tokens`
+   across assistant records.
+3. Record source as `claude.usage.message_usage`.
 
 This is the primary token number.
 
@@ -432,8 +459,8 @@ Rules to encode in v1:
 
 ## Implementation Order
 
-1. Create `SKILL.md` with Codex-first routing and references.
-2. Implement `bin/ats-host-codex` using Python stdlib sqlite/json.
+1. Create `SKILL.md` with host-agnostic routing (Codex + Claude Code) and references.
+2. Implement `bin/ats-host-codex` using Python stdlib sqlite/json, and `bin/ats-host-claude` to parse `~/.claude` transcripts and sum `message.usage`.
 3. Implement `bin/ats-token-estimate`.
 4. Implement `bin/ats-detect` for CodeGraph/GitNexus/graphify.
 5. Implement `bin/ats-route` as a small rule table.

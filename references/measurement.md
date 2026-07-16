@@ -2,7 +2,11 @@
 
 Use this reference when reporting token/context savings. Never present estimates as exact.
 
-## Codex Usage
+## Host Usage
+
+Prefer the host's own counters and local state. Pick the matching host below; both return the same shape (`tokens_used`, `tokens_source`, `estimated`).
+
+### Codex
 
 Prefer Codex's local state when available:
 
@@ -13,11 +17,27 @@ Prefer Codex's local state when available:
 - `threads.reasoning_effort`
 - `threads.cli_version`
 
-Treat these filenames as private implementation details. If they are missing or unreadable, return partial data with `estimated=true`.
+### Claude Code
+
+Prefer Claude Code's transcript and per-record usage:
+
+- Transcripts: `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl`
+  - `<encoded-cwd>` is the working directory with `/` replaced by `-`
+    (e.g. `/Volumes/dz/code/poorguy-token` -> `-Volumes-dz-code-poorguy-token`).
+  - One JSONL file per session, named by session UUID; the current session is the newest file in the project dir.
+- Real token counts live on assistant records at `message.usage`:
+  - `input_tokens`, `output_tokens`
+  - `cache_creation_input_tokens`, `cache_read_input_tokens`
+  - `server_tool_use` (e.g. `web_search_requests`, `web_fetch_requests`)
+- Session total: sum `input_tokens + cache_creation_input_tokens + cache_read_input_tokens + output_tokens` across assistant records. Record `tokens_source` as `claude.usage.message_usage`.
+- `/cost` reports total tokens and cost for the current session. `ccusage` (third-party) parses the same transcripts into per-session/daily reports.
+- Model, cwd, git SHA, and branch are not stored on every record; capture them once from the environment or the first/last record and attach to the report.
+
+Treat all paths and field names as private implementation details. If a source is missing or unreadable, return partial data with `estimated=true`.
 
 ## Context Buckets
 
-When parsing a rollout jsonl, classify bytes into:
+When parsing a host transcript (Codex rollout jsonl or Claude Code session jsonl), classify bytes into:
 
 | Bucket | Meaning |
 |---|---|
@@ -30,6 +50,19 @@ When parsing a rollout jsonl, classify bytes into:
 | `world_state_bytes` | Host-provided state |
 | `turn_context_bytes` | Host-provided turn context |
 | `repeated_context_bytes` | Duplicate chunks by hash |
+
+Claude Code block -> bucket mapping:
+
+| Transcript block | Bucket |
+|---|---|
+| `user` message text | `user_text_bytes` |
+| `assistant` message text blocks | `assistant_text_bytes` |
+| `tool_use` blocks (`name` + `input`) | `tool_call_bytes` |
+| `tool_result` blocks (`content`) | `tool_output_bytes` |
+| `Read`/tool-returned file contents, snippets, diffs | `code_context_bytes` |
+| `attachment` and pasted docs/web pages | `non_code_context_bytes` |
+
+Codex rollout event types map by the same intent; reuse the buckets above.
 
 ## Token Estimate Fallback
 
@@ -57,11 +90,13 @@ Baseline examples:
 
 ## Confidence
 
-- `high`: actual Codex token count plus parsed rollout data.
+- `high`: actual host token count (Codex sqlite `tokens_used` or Claude Code `message.usage` sum) plus parsed transcript data.
 - `medium`: parsed context text plus tokenizer or byte estimate.
 - `low`: heuristic baseline only.
 
 ## Short Report
+
+The `tokens` source label reflects whichever host produced the number. Examples:
 
 ```text
 poorguy-token report
@@ -70,6 +105,15 @@ context: 38% of 110k, 18,420 tool-output tokens estimated
 saved: 18,820 net estimated tokens
 confidence: medium
 top saver: CodeGraph avoided 9 full-file reads
+```
+
+```text
+poorguy-token report
+actual tokens: 51,604 (Claude message_usage sum)
+context: 47% of 200k, 21,300 tool-output tokens estimated
+saved: 14,200 net estimated tokens
+confidence: high
+top saver: line-range reads avoided 7 full-file reads
 ```
 
 If actual usage is unavailable:

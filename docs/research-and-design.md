@@ -4,6 +4,10 @@ Date: 2026-07-16
 
 ## Goal
 
+> **Update**: the skill now spans five axes (read less, write less, never repeat,
+> enforce, measure), not just routing. See [design.md](design.md) for the current
+> architecture. The original routing-focused goal is preserved below.
+
 Build a standard Agent Skill that saves tokens during AI coding work by routing
 the agent to the cheapest context path:
 
@@ -13,7 +17,7 @@ the agent to the cheapest context path:
 4. Track actual session cost and estimate avoided cost.
 5. Install missing helper tools on first use, with user-visible safety gates.
 
-V1 is Codex-first. The design keeps host adapters so Claude Code, Cursor,
+V1 supports Codex and Claude Code. The design keeps host adapters so Cursor,
 OpenCode, and other Agent Skills hosts can be added without rewriting routing or
 measurement.
 
@@ -89,10 +93,10 @@ Recommended: `agent-token-saver`, because it says the user outcome directly.
 Global install should require explicit approval because it changes PATH or user
 agent configuration.
 
-## Codex-First Host Adapter
+## Host Adapters (Codex and Claude Code)
 
-Codex gets the first-class implementation because this project is being built in
-Codex and local state is available.
+Codex and Claude Code get the first-class implementations because this project is
+being built across both hosts and local state is available for each.
 
 Local sources to read:
 
@@ -104,8 +108,17 @@ Local sources to read:
 | rollout jsonl | `type=session_meta/event_msg/response_item/world_state/turn_context` | Estimate context, tool output, and conversation bytes. |
 | `~/.codex/logs_2.sqlite` | `logs.estimated_bytes` | Fallback runtime log volume, not token usage. |
 
+Claude Code local sources to read:
+
+| Source | Field | Use |
+|---|---|---|
+| `~/.claude/projects/<encoded-cwd>/<session-id>.jsonl` | assistant `message.usage` | Best available actual token count (`input/output/cache_creation_input/cache_read_input_tokens`). |
+| same transcript | `tool_use` / `tool_result` blocks | Estimate tool-call and tool-output bytes. |
+| same transcript | `user` / `assistant` text blocks, `attachment` | Estimate conversation and non-code context bytes. |
+| `/cost`, `ccusage` | aggregated totals | Ready-made session/daily usage reports. |
+
 Do not depend on these filenames as public API. Wrap them behind
-`bin/ats-host-codex` and make failure cheap:
+`bin/ats-host-codex` / `bin/ats-host-claude` and make failure cheap:
 
 ```json
 {
@@ -358,7 +371,8 @@ These should be encoded as rules, not advice buried in docs:
 
 ## Recommendation
 
-Build v1 as a Codex-first thin router over CodeGraph, GitNexus, and graphify.
+Build v1 as a Codex- and Claude Code-first thin router over CodeGraph, GitNexus,
+and graphify.
 Include Serena, FastContext, FastCode, aider repo-map, and LLMLingua in the
 awesome list and optional detectors, but do not install them by default.
 
