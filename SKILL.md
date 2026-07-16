@@ -1,9 +1,9 @@
 ---
-name: poolguy-token
+name: poorguy-token
 description: Token-saving context router for AI coding agents. Use when Codex is working in a repository and should minimize context, file reads, tool output, and repeated exploration for coding, debugging, review, refactoring, symbol lookup, impact analysis, execution-flow tracing, docs-plus-code questions, large logs, or token/context savings reports.
 ---
 
-# Poolguy Token
+# Poorguy Token
 
 Use this skill to choose the cheapest context path that still gives enough evidence to solve the user's coding task.
 
@@ -48,10 +48,10 @@ Return compact evidence in this shape before reading more:
 
 ## Local State
 
-Use `.poolguy-token/` only when a session needs persistent routing or savings state:
+Use `.poorguy-token/` only when a session needs persistent routing or savings state:
 
 ```text
-.poolguy-token/
+.poorguy-token/
   sessions/
   cache/
   savings.jsonl

@@ -1,8 +1,8 @@
-# poolguy-token
+# poorguy-token
 
 ## English
 
-`poolguy-token` is a Codex-first Agent Skill for reducing token waste during AI
+`poorguy-token` is a Codex-first Agent Skill for reducing token waste during AI
 coding work. It routes the agent to the cheapest useful context source:
 direct file/range reads, CodeGraph, GitNexus, graphify, or strict `rg` fallback.
 
@@ -33,7 +33,7 @@ or routing commands are used often enough to justify maintaining code.
 
 ## 中文
 
-`poolguy-token` 是一个 Codex 优先的 Agent Skill，用来减少 AI 编码任务里的
+`poorguy-token` 是一个 Codex 优先的 Agent Skill，用来减少 AI 编码任务里的
 token 浪费。它会把 agent 路由到成本最低且足够有用的上下文来源：直接读取
 文件/行范围、CodeGraph、GitNexus、graphify，或者严格限制输出的 `rg` 兜底。
 

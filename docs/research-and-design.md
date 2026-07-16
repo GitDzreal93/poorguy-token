@@ -1,4 +1,4 @@
-# poolguy-token: Research And Design
+# poorguy-token: Research And Design
 
 Date: 2026-07-16
 

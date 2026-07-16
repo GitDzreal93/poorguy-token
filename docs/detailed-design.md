@@ -1,10 +1,10 @@
-# poolguy-token Detailed Design
+# poorguy-token Detailed Design
 
 Date: 2026-07-16
 
 ## Purpose
 
-`poolguy-token` is a Codex-first Agent Skill that reduces token use by routing
+`poorguy-token` is a Codex-first Agent Skill that reduces token use by routing
 AI coding work to the cheapest useful context source.
 
 It does not replace CodeGraph, GitNexus, or graphify. It chooses between them,
@@ -44,7 +44,7 @@ Deferred:
 ## Directory Layout
 
 ```text
-poolguy-token/
+poorguy-token/
   SKILL.md
   README.md
   references/
@@ -75,7 +75,7 @@ current task.
 Project-local state:
 
 ```text
-.poolguy-token/
+.poorguy-token/
   config.json
   sessions/
     <session-id>.json
@@ -269,7 +269,7 @@ sha256(repo_sha + tool + query + normalized_intent)
 
 ```mermaid
 flowchart TD
-  A[User asks coding question] --> B[poolguy-token starts]
+  A[User asks coding question] --> B[poorguy-token starts]
   B --> C[Detect host and repo]
   C --> D[Load local config and session cache]
   D --> E{Exact tiny task?}
@@ -332,7 +332,7 @@ flowchart TD
 sequenceDiagram
   participant U as User
   participant C as Codex
-  participant S as poolguy-token Skill
+  participant S as poorguy-token Skill
   participant R as Router
   participant T as Context Tool
   participant DB as Codex State
@@ -357,7 +357,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant C as Codex
-  participant S as poolguy-token
+  participant S as poorguy-token
   participant U as User
   participant N as npm/uv
   participant T as Installed Tool
@@ -379,10 +379,10 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-  participant S as poolguy-token
+  participant S as poorguy-token
   participant DB as ~/.codex/state_5.sqlite
   participant J as rollout jsonl
-  participant FS as .poolguy-token/savings.jsonl
+  participant FS as .poorguy-token/savings.jsonl
   participant U as User
 
   S->>DB: Query current thread tokens_used
@@ -398,7 +398,7 @@ sequenceDiagram
 ## Session End Report Format
 
 ```text
-poolguy-token report
+poorguy-token report
 actual tokens: 42,180 (Codex sqlite)
 context: 38% of 110k, 18,420 tool-output tokens estimated
 saved: 18,820 net estimated tokens

@@ -64,7 +64,7 @@ Baseline examples:
 ## Short Report
 
 ```text
-poolguy-token report
+poorguy-token report
 actual tokens: 42,180 (Codex sqlite)
 context: 38% of 110k, 18,420 tool-output tokens estimated
 saved: 18,820 net estimated tokens
