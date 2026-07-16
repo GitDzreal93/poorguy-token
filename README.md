@@ -1,62 +1,193 @@
-# poorguy-token
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+    <img src="assets/logo.svg" width="150" alt="poorguy-token">
+  </picture>
+</p>
 
-## English
+<h1 align="center">poorguy-token</h1>
 
-`poorguy-token` is a Codex-first Agent Skill for reducing token waste during AI
-coding work. It routes the agent to the cheapest useful context source:
-direct file/range reads, CodeGraph, GitNexus, graphify, or strict `rg` fallback.
+<p align="center">
+  <em>He pays for his own tokens. So he spends none he doesn't have to.</em>
+</p>
 
-The skill is now usable through `SKILL.md`.
+<p align="center">
+  <img src="https://img.shields.io/badge/works%20with-Claude%20Code%20%2B%20Codex-111111?style=flat-square" alt="Claude Code + Codex">
+  <img src="https://img.shields.io/badge/axes-5-111111?style=flat-square" alt="5 axes">
+  <img src="https://img.shields.io/badge/benchmark-honest%20or%20none-111111?style=flat-square" alt="No fake benchmark">
+  <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
+</p>
 
-### What It Does
+<p align="center">
+  <strong>Read less &middot; Write less &middot; Never make the same mistake twice.</strong><br>
+  <sub>The AI coding skill that treats your token bill like it comes out of its own pocket.</sub>
+</p>
 
-- Classifies the task before broad repo exploration.
-- Skips index tools for tiny or exact-file tasks.
-- Chooses one primary context tool for repo-scale questions.
-- Converts tool output into compact evidence packets with citations.
-- Reads cited line ranges before whole files.
-- Provides token/context savings reporting guidance for Codex sessions.
+<p align="center">
+  <sub><a href="README.zh.md">中文</a></sub>
+</p>
 
-### Files
+---
 
-- `SKILL.md`: Runtime skill instructions.
-- `references/routing.md`: Intent routing, budgets, evidence packet rules.
-- `references/tools.md`: Tool selection, detection, install, and fallback policy.
-- `references/measurement.md`: Codex usage and savings report guidance.
-- `docs/research-and-design.md`: Research notes and product design.
-- `docs/detailed-design.md`: Detailed architecture and diagrams.
+You know him. Checks the token counter after every reply. Reads three lines of a file, not three hundred. Writes the answer in the first sentence — the apology never comes. Got burned by that bug last Tuesday; you won't catch him near it again.
 
-### Deferred
+**poorguy-token puts him inside your agent.**
 
-Executable helper scripts are intentionally deferred. Add them when measurement
-or routing commands are used often enough to justify maintaining code.
+It is not another indexer. It is the brain that decides *how little* your agent can read, *how little* it can write, and *which lesson from last time* it must not forget — while keeping every line of code correct.
 
-## 中文
+## Before / after
 
-`poorguy-token` 是一个 Codex 优先的 Agent Skill，用来减少 AI 编码任务里的
-token 浪费。它会把 agent 路由到成本最低且足够有用的上下文来源：直接读取
-文件/行范围、CodeGraph、GitNexus、graphify，或者严格限制输出的 `rg` 兜底。
+You ask: *"what calls `UserService.validate`?"*
 
-现在已经可以通过 `SKILL.md` 使用。
+**Your agent:** greps the repo, opens 9 files, pastes 6 of them into context, then summarizes.
 
-### 功能
+**poorguy:** one graph query, one evidence packet:
 
-- 在大范围探索仓库前先判断任务类型。
-- 对很小的任务或明确文件路径的修改，跳过索引工具。
-- 对仓库级问题只选择一个主要上下文工具。
-- 把工具输出压缩成带引用的 evidence packet。
-- 优先读取引用到的行范围，而不是整文件。
-- 为 Codex session 提供 token/context 节省报告规则。
+```json
+{ "summary": "3 callers; checkout path affected",
+  "citations": [{ "path": "src/checkout/service.ts", "lines": "42-88", "why": "direct caller" }],
+  "next_action": "read cited ranges only" }
+```
 
-### 文件
+And on the way out — the reply itself. Same bug, two answers:
 
-- `SKILL.md`：运行时 skill 指令。
-- `references/routing.md`：意图路由、预算和 evidence packet 规则。
-- `references/tools.md`：工具选择、检测、安装和兜底策略。
-- `references/measurement.md`：Codex 用量和节省报告规则。
-- `docs/research-and-design.md`：调研和产品设计。
-- `docs/detailed-design.md`：详细架构和流程图。
+**Without poorguy:**
 
-### 暂缓内容
+> Sure! I'd be happy to help you with that. The issue you're seeing is likely caused by the auth middleware checking token expiry with a strict less-than comparison instead of less-than-or-equal, which means tokens expire one tick early. Let me walk you through it…
+>
+> *(~73 output tokens before the fix is named)*
 
-暂不加入可执行辅助脚本。等路由或测量命令被反复使用、值得维护代码时再补。
+**With poorguy:**
+
+> Token expiry uses `<` not `<=` in `auth/middleware.ts:42`. Tokens die one tick early.
+>
+> *(~20 tokens. Fix is the first word.)*
+
+Same answer. The apology was never the point.
+
+## How it works — five axes
+
+Before acting, poorguy runs five checks. Each is one reference file, loaded only when the task needs it — so the skill itself stays cheap to keep in context.
+
+| Axis | What it does | Saves |
+|---|---|---|
+| **1. Read less** | Cheapest context path first: range read → graph query (CodeGraph / GitNexus / graphify) → strict `rg`. | input / context |
+| **2. Write less** | Terse prose. Code, errors, paths, and patch anchors are never touched. | output |
+| **3. Remember** | Lessons load before the first edit. A mistake happens once. | retries, dead-ends |
+| **4. Enforce** | Optional host hooks block fluff replies at the source. | guarantees the above |
+| **5. Measure** | Real per-host token counts, so you watch the bill go down. | visibility |
+
+## Frugal, not cheap
+
+Lazy about tokens. Never about correctness.
+
+Validation, error handling, security, data-loss guards, and the exact lines you're about to edit are never on the chopping block. When an action is irreversible, security-sensitive, or order-sensitive, poorguy stops being terse and says it in full. It compresses prose, never code.
+
+And no invented abbreviations — `cfg`/`impl`/`req` save zero tokens (the tokenizer splits them like the full word) and cost clarity. The full word it is.
+
+## Install
+
+Skills load at session start, so install, then **start a new session**.
+
+### Claude Code
+
+```bash
+# user-level (every project). symlink keeps your edits live:
+ln -s "$(pwd)" ~/.claude/skills/poorguy-token
+```
+
+```bash
+# or project-level (one repo):
+mkdir -p .claude/skills && ln -s "$(pwd)" .claude/skills/poorguy-token
+```
+
+Symlink the **whole directory** — `SKILL.md` reaches `references/` and `memory/` by relative path.
+
+### Codex
+
+Copy the core rules from [`SKILL.md`](SKILL.md) into your repo's `AGENTS.md` (Codex reads it every session), or point your config at this directory's skills. Routing, output, and memory work identically; only measurement reads Codex-local state.
+
+## The part that compounds: memory
+
+Skills forget. poorguy doesn't.
+
+Every confirmed mistake, correction, and non-obvious convention gets written as a one-line lesson — loaded before the next edit. The second encounter is free; the mistake never happens a third time.
+
+```text
+- type error after rename: missed a caller in another file. Rule: fetch callers before rename. Avoid: single-file rename.
+- tests hung on CI: script used jest --watch. Rule: run `jest --ci`. Avoid: watch mode in scripts.
+```
+
+Two tiers: **skill memory** (ships with the skill — your hard-won general rules) and **project memory** (`.poorguy-token/memory/`, repo-specific). Both stay terse, because reloading memory costs tokens too — a bloated memory store is self-defeating.
+
+## Optional: make it a harness
+
+A skill is advice the model can ignore on a bad turn. Hooks are enforced. poorguy ships a tested Claude Code `Stop` hook that blocks replies opening with pleasantries and forces a terse retry:
+
+```json
+{
+  "hooks": {
+    "Stop": [{ "matcher": "", "hooks": [{ "type": "command",
+      "command": "python3 ~/.claude/skills/poorguy-token/hooks/fluff_guard.py" }] }]
+  }
+}
+```
+
+Codex enforces the same intent through `AGENTS.md` rules (it has fewer native hook points). Hooks are always opt-in — see [`references/harness.md`](references/harness.md).
+
+## The honest numbers
+
+Every token-saver on GitHub leads with a big percentage. poorguy is the one that won't lie to you with a number it made up. Here is the real math:
+
+- **Read less is the big lever.** In long sessions, input and context dwarf output. Skipping nine full-file reads beats any prose trick.
+- **Write less cuts output** — roughly tens of percent on verbose replies — but the rules cost **~1–1.5k input tokens per turn**. Net win on long, chatty work; near flat on terse Q&A.
+- **The only fully honest number is an A/B on your own usage page.** poorguy ships the measurement to read it — real counts from Codex sqlite/rollout or Claude Code's `message.usage`, with a confidence label.
+
+> **Rule of thumb:** if your normal reply is over ~1.5–2k output tokens, poorguy saves you money. Under that, it saves you reading time — and that part is free.
+
+## Files
+
+```text
+poorguy-token/
+  SKILL.md                 # the hub: load memory, pick an axis, core rules
+  references/              # the five blades, loaded on demand
+    routing.md  tools.md  output.md  memory.md  harness.md  measurement.md
+  memory/                  # always-on lessons, style, best practices (seeded)
+    best-practices.md  style.md  lessons.md
+  hooks/fluff_guard.py     # Claude Code Stop hook (tested)
+  docs/                    # bilingual architecture + design notes
+```
+
+## FAQ
+
+**Why "poorguy"?**
+Because someone pays for those tokens, and it's you.
+
+**Does it hurt code quality?**
+No. It compresses prose to the user, never code, errors, or the lines being edited. Risky and order-sensitive steps get full sentences.
+
+**Claude Code or Codex?**
+Both. Same brain; only the measurement adapter and the hook surface differ.
+
+**Will it remember my codebase's weird build command?**
+After the first time, yes. That is the entire point of the memory tier.
+
+**Where's the benchmark?**
+There isn't one, and there won't be a fake one. Run your own A/B and check your provider's usage page — that number outranks anything a README could print.
+
+**Do I need CodeGraph / GitNexus / graphify?**
+No. Without them poorguy falls back to strict `rg` and range reads and still helps on the write + memory axes. With one installed, the read axis gets sharp.
+
+## License
+
+[MIT](LICENSE). The shortest license that works.
+
+## Star History
+
+<a href="https://www.star-history.com/#GitDzreal93/poorguy-token&Date">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=GitDzreal93/poorguy-token&type=Date&theme=dark">
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=GitDzreal93/poorguy-token&type=Date">
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=GitDzreal93/poorguy-token&type=Date">
+ </picture>
+</a>
