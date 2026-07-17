@@ -36,6 +36,8 @@ Load only the blade the task needs.
 8. Stop searching once evidence is enough to edit and test. Ask before widening to a whole-repo audit.
 9. Ask before global installs, broad repo audits, or expensive reindexing.
 10. On any confirmed mistake, correction, or convention, append to memory.
+11. Before every final reply while this skill is active, run `python3 scripts/session_report.py` from the skill root and append its markdown table. If the script is unavailable, print a compact manual table with available token/context/tool/skill/memory/elapsed facts and mark unknowns.
+12. If the user writes in Chinese, reply in Chinese and render telemetry labels in Chinese too.
 
 ## Evidence packet
 
