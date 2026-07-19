@@ -98,6 +98,14 @@ Baseline examples:
 
 The `tokens` source label reflects whichever host produced the number. Examples:
 
+Run this from the skill root before the final reply when `poorguy-token` is active:
+
+```bash
+python3 scripts/session_report.py
+```
+
+It prints a markdown table with session tokens, context window/use/percent, tools, observed skills, memory read/write, elapsed time, and context buckets. Values from host counters are exact for that host; bucket totals are byte/token estimates. Chinese user messages produce Chinese labels.
+
 ```text
 poorguy-token report
 actual tokens: 42,180 (Codex sqlite)
