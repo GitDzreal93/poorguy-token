@@ -13,3 +13,4 @@ See [references/memory.md](../references/memory.md).
 - flaky test: depended on wall-clock time/order. Rule: inject a clock or use deterministic fixtures. Avoid: `Date.now()`/`sleep` in tests.
 - merge conflict reappeared: two patches edited the same shared util. Rule: fetch callers/impact before editing shared code. Avoid: editing blind.
 - fix reverted next session: the lesson was never written down. Rule: append to memory on any confirmed mistake. Avoid: solving and moving on silently.
+- agent reached for a second graph backend: CodeGraph/GitNexus/graphify overlap. Rule: reuse the installed/persisted backend; install one only if none present. Avoid: installing more than one.

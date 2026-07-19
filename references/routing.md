@@ -1,20 +1,22 @@
 # Routing
 
-Pick the first route that fits.
+Pick the first route that fits. "Graph backend" everywhere below means **the one backend chosen/detected in [tools.md](tools.md)** — not a specific product. Route every graph-shaped query through it.
 
 | Task | Primary path | Fallback | Skip tools when |
 |---|---|---|---|
 | Exact file edit | Direct range read | `rg` then range read | User named the file and change is local |
-| Diff review | `git diff` first | Graph impact query | No diff exists |
-| Symbol lookup | CodeGraph | Serena or `rg` | Symbol is already in context |
-| Shared-function edit | CodeGraph impact/callers | GitNexus impact | Function is private and local |
-| Execution flow | GitNexus trace/context | CodeGraph | One file contains the flow |
-| API route impact | GitNexus | CodeGraph | Route file and callers are known |
-| Cross-repo/group impact | GitNexus | graphify | Repo group is not configured |
-| Docs + code question | graphify | Direct reads | Docs are tiny or explicitly named |
-| PDF/media/schema context | graphify | Direct file tool | Single small file is named |
+| Diff review | `git diff` first | Graph backend impact query | No diff exists |
+| Symbol lookup | Graph backend | Serena or `rg` | Symbol is already in context |
+| Shared-function edit | Graph backend (callers/impact) | `rg` + range reads | Function is private and local |
+| Execution flow | Graph backend trace | `rg` across call sites | One file contains the flow |
+| API route impact | Graph backend | `rg` on route handlers | Route file and callers are known |
+| Cross-repo/group impact | Graph backend | `rg` | Repo group is not configured |
+| Docs + code question | Graph backend | Direct reads | Docs are tiny or explicitly named |
+| PDF/media/schema context | Graph backend | Direct file tool | Single small file is named |
 | Large logs | Exact error lines first | Summarize surrounding log | User already supplied the failure |
-| Unknown repo exploration | Read-only evidence packet | CodeGraph or strict `rg` | Repo has fewer than about 20 files |
+| Unknown repo exploration | Read-only evidence packet | Graph backend or strict `rg` | Repo has fewer than about 20 files |
+
+A backend's own strengths (CodeGraph = pure code, GitNexus = flows/cross-repo, graphify = mixed media) matter **only at pick time** — see tools.md. Once one is chosen, don't spin up a second backend because a task "fits" another better. If the chosen backend can't answer a query, fall back to `rg`, not to a rival backend.
 
 ## Output Budgets
 

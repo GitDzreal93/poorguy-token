@@ -1,6 +1,6 @@
 ---
 name: poorguy-token
-description: Token-saving brain for AI coding agents (Claude Code and Codex). Use when the agent should minimize tokens on both axes — READ less via graph routing (CodeGraph/GitNexus/graphify), line-range reads, and evidence packets, and WRITE less via terse output with no fluff — for coding, debugging, review, refactoring, symbol lookup, impact analysis, execution-flow tracing, docs, or large logs. Also use to load or bake memory so coding mistakes are never repeated and best practices persist, to install enforcement hooks, or to report token/context savings.
+description: Token-saving brain for AI coding agents (Claude Code and Codex). Use when the agent should minimize tokens on both axes — READ less via one graph backend (CodeGraph/GitNexus/graphify — pick one, reuse what's installed), line-range reads, and evidence packets, and WRITE less via terse output with no fluff — for coding, debugging, review, refactoring, symbol lookup, impact analysis, execution-flow tracing, docs, or large logs. Also use to load or bake memory so coding mistakes are never repeated and best practices persist, to install enforcement hooks, or to report token/context savings.
 ---
 
 # Poorguy Token
@@ -18,7 +18,7 @@ Load only the blade the task needs.
 | Axis | Goal | Read |
 |---|---|---|
 | Read less | cheapest context path | [references/routing.md](references/routing.md) |
-| Graph tools | pick CodeGraph / GitNexus / graphify | [references/tools.md](references/tools.md) |
+| Graph tools | one backend — reuse or pick one of CodeGraph / GitNexus / graphify | [references/tools.md](references/tools.md) |
 | Write less | terse output, keep accuracy | [references/output.md](references/output.md) |
 | Memory | mistakes never repeated, best practices baked | [references/memory.md](references/memory.md) |
 | Harness | enforce via hooks (opt-in) | [references/harness.md](references/harness.md) |
@@ -28,7 +28,7 @@ Load only the blade the task needs.
 
 1. Classify the task before reading broadly.
 2. Direct range read for tiny or exact-path edits; skip index tools.
-3. One primary context tool for repo-scale questions; fall back only after a miss, stale index, or unsupported query.
+3. **One graph backend per project** (CodeGraph / GitNexus / graphify): reuse what's installed, install one only if nothing is present and repo-scale context is needed, never all three. The user's explicit pick always wins. See [references/tools.md](references/tools.md). Fall back to `rg` only after a miss, stale index, or unsupported query.
 4. Convert broad tool output into an evidence packet before reasoning on it.
 5. Read cited line ranges first; whole file only when editing requires nearby context.
 6. Fetch callers/impact once before changing shared functions.
@@ -69,6 +69,7 @@ Use `.poorguy-token/` only when a session needs persistent routing, savings, or 
 
 ```text
 .poorguy-token/
+  config.json          # graph_backend choice + install record (see references/tools.md, harness.md)
   sessions/
   cache/
   savings.jsonl
